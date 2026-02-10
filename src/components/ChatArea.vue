@@ -1,50 +1,65 @@
 <template>
-  <div class="flex-1 flex flex-col bg-darker">
-    <div class="flex-1 overflow-y-auto p-4">
-      <div class="max-w-3xl mx-auto">
+  <div class="flex-1 flex flex-col bg-bg">
+    <div class="flex-1 overflow-y-auto custom-scrollbar">
+      <div class="max-w-3xl mx-auto px-6 py-10">
         <div
           v-for="msg in messages"
           :key="msg.id"
-          class="mb-6"
-          :class="msg.role === 'user' ? 'text-right' : 'text-left'"
+          class="mb-10 flex gap-3.5"
+          :class="msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'"
         >
           <div
-            class="inline-block max-w-[80%] p-4 rounded-2xl"
-            :class="msg.role === 'user' ? 'bg-primary text-white' : 'bg-dark text-gray-100'"
+            class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+            :class="msg.role === 'user' ? 'bg-gradient-to-br from-primary to-primary-soft' : 'bg-surface'"
           >
-            {{ msg.content }}
+            <NIcon
+              :component="msg.role === 'user' ? PersonOutline : SparklesOutline"
+              :size="15"
+              :class="msg.role === 'user' ? 'text-white' : 'text-primary-soft'"
+            />
+          </div>
+          <div
+            class="px-4 py-3 rounded-2xl max-w-[75%]"
+            :class="msg.role === 'user' ? 'bg-gradient-to-br from-primary to-primary-soft text-white' : 'bg-surface text-text'"
+          >
+            <div class="text-sm leading-7 whitespace-pre-wrap">{{ msg.content }}</div>
           </div>
         </div>
         
-        <div v-if="messages.length === 0" class="text-center text-gray-500 mt-20">
-          <NIcon :component="ChatbubblesOutline" class="text-6xl mb-4" />
-          <p class="text-lg">开始对话吧</p>
-          <p class="text-sm mt-2">输入问题，AI 将为你解答</p>
+        <div v-if="messages.length === 0" class="flex flex-col items-center justify-center min-h-[55vh]">
+          <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-primary-soft/20 flex items-center justify-center mb-5">
+            <NIcon :component="SparklesOutline" :size="32" class="text-primary-soft" />
+          </div>
+          <h2 class="text-xl font-medium text-text mb-2">有什么可以帮你的吗？</h2>
+          <!-- <p class="text-sm text-text-dim">输入你的问题，AI 将为你解答</p> -->
         </div>
       </div>
     </div>
     
-    <div class="p-4 border-t border-gray-700">
-      <div class="max-w-3xl mx-auto">
-        <div class="flex gap-2">
+    <div class="border-t border-border">
+      <div class="max-w-3xl mx-auto px-4 py-4">
+        <div class="relative flex items-end gap-2 bg-surface rounded-2xl px-4 py-2">
           <NInput
             v-model:value="inputText"
             type="textarea"
-            :autosize="{ minRows: 1, maxRows: 4 }"
-            placeholder="输入消息..."
+            :autosize="{ minRows: 1, maxRows: 8 }"
+            placeholder="发送消息给 AI..."
+            class="flex-1"
             @keydown="handleKeyDown"
           />
           <NButton
-            type="primary"
+            quaternary
+            :type="inputText.trim() ? 'primary' : 'default'"
             :disabled="!inputText.trim()"
+            class="shrink-0 mb-0.5"
             @click="handleSend"
           >
             <template #icon>
-              <NIcon :component="SendOutline" />
+              <NIcon :component="SendOutline" :size="18" />
             </template>
-            发送
           </NButton>
         </div>
+        <p class="text-xs text-center text-text-dim mt-2.5">Enter 发送，Shift + Enter 换行</p>
       </div>
     </div>
   </div>
@@ -53,7 +68,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { NInput, NButton, NIcon } from 'naive-ui'
-import { SendOutline, ChatbubblesOutline } from '@vicons/ionicons5'
+import { SendOutline, PersonOutline, SparklesOutline } from '@vicons/ionicons5'
 import type { Message } from '../types'
 
 const messages = ref<Message[]>([])
@@ -72,7 +87,6 @@ const handleSend = () => {
   messages.value.push(userMsg)
   inputText.value = ''
   
-  // 模拟 AI 回复
   setTimeout(() => {
     const aiMsg: Message = {
       id: (Date.now() + 1).toString(),
