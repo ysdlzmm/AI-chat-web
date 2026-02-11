@@ -85,42 +85,32 @@ import { NIcon } from 'naive-ui'
 import { AddOutline, CloseOutline, ChatbubblesOutline, SparklesOutline, ChevronForwardOutline, ChevronBackOutline } from '@vicons/ionicons5'
 import type { Conversation } from '../types'
 
+const props = defineProps<{
+  conversations: Conversation[]
+  activeId: string
+}>()
+
+const emit = defineEmits<{
+  'update:activeId': [id: string]
+  'newConversation': []
+  'deleteConversation': [id: string]
+}>()
+
 const collapsed = ref(false)
 
 const toggleCollapse = () => {
   collapsed.value = !collapsed.value
 }
 
-const conversations = ref<Conversation[]>([
-  {
-    id: '1',
-    title: '欢迎使用 AI Chat',
-    messages: [],
-    updatedAt: Date.now()
-  }
-])
-
-const activeId = ref('1')
-
 const handleNewChat = () => {
-  const newConv: Conversation = {
-    id: Date.now().toString(),
-    title: `对话 ${conversations.value.length + 1}`,
-    messages: [],
-    updatedAt: Date.now()
-  }
-  conversations.value.unshift(newConv)
-  activeId.value = newConv.id
+  emit('newConversation')
 }
 
 const handleSelectConversation = (id: string) => {
-  activeId.value = id
+  emit('update:activeId', id)
 }
 
 const handleDeleteConversation = (id: string) => {
-  conversations.value = conversations.value.filter(c => c.id !== id)
-  if (activeId.value === id && conversations.value.length > 0) {
-    activeId.value = conversations.value[0].id
-  }
+  emit('deleteConversation', id)
 }
 </script>

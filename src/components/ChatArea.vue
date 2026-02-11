@@ -1,15 +1,15 @@
 <template>
-  <div class="flex-1 flex flex-col bg-bg">
-    <div class="flex-1 overflow-y-auto custom-scrollbar">
-      <div class="max-w-3xl mx-auto px-6 py-10">
+  <div class="flex flex-1 flex-col bg-bg">
+    <div class="custom-scrollbar flex-1 overflow-y-auto">
+      <div class="mx-auto max-w-3xl px-6 py-10">
         <div
-          v-for="msg in messages"
+          v-for="msg in displayMessages"
           :key="msg.id"
           class="mb-10 flex gap-3.5"
           :class="msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'"
         >
           <div
-            class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+            class="h-8 w-8 flex shrink-0 items-center justify-center rounded-lg"
             :class="msg.role === 'user' ? 'bg-gradient-to-br from-primary to-primary-soft' : 'bg-surface'"
           >
             <NIcon
@@ -19,33 +19,33 @@
             />
           </div>
           <div
-            class="px-4 py-3 rounded-2xl max-w-[75%]"
+            class="max-w-[75%] rounded-2xl px-4 py-3"
             :class="msg.role === 'user' ? 'bg-gradient-to-br from-primary to-primary-soft text-white' : 'bg-surface text-text'"
           >
             <div 
-              class="text-sm leading-7 whitespace-pre-wrap"
+              class="whitespace-pre-wrap text-sm leading-7"
               v-html="formatMessage(msg.content)"
-            />
-            <div v-if="msg.role === 'assistant' && isLoading && msg.id === loadingMessageId" class="flex items-center gap-1 mt-2">
-              <span class="w-1.5 h-1.5 bg-text-dim rounded-full animate-bounce" style="animation-delay: 0ms"></span>
-              <span class="w-1.5 h-1.5 bg-text-dim rounded-full animate-bounce" style="animation-delay: 150ms"></span>
-              <span class="w-1.5 h-1.5 bg-text-dim rounded-full animate-bounce" style="animation-delay: 300ms"></span>
+            ></div>
+            <div v-if="msg.role === 'assistant' && isLoading && msg.id === loadingMessageId" class="mt-2 flex items-center gap-1">
+              <span class="h-1.5 w-1.5 animate-bounce rounded-full bg-text-dim" style="animation-delay: 0ms"></span>
+              <span class="h-1.5 w-1.5 animate-bounce rounded-full bg-text-dim" style="animation-delay: 150ms"></span>
+              <span class="h-1.5 w-1.5 animate-bounce rounded-full bg-text-dim" style="animation-delay: 300ms"></span>
             </div>
           </div>
         </div>
         
-        <div v-if="messages.length === 0" class="flex flex-col items-center justify-center min-h-[55vh]">
-          <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-primary-soft/20 flex items-center justify-center mb-5">
+        <div v-if="displayMessages.length === 0" class="min-h-[55vh] flex flex-col items-center justify-center">
+          <div class="mb-5 h-16 w-16 flex items-center justify-center rounded-2xl from-primary/20 to-primary-soft/20 bg-gradient-to-br">
             <NIcon :component="SparklesOutline" :size="32" class="text-primary-soft" />
           </div>
-          <h2 class="text-xl font-medium text-text mb-2">有什么可以帮你的吗？</h2>
+          <h2 class="mb-2 text-xl text-text font-medium">有什么可以帮你的吗？</h2>
         </div>
       </div>
     </div>
     
     <div class="border-t border-border">
-      <div class="max-w-3xl mx-auto px-4 py-4">
-        <div class="relative flex items-end gap-2 bg-surface rounded-2xl px-4 py-2">
+      <div class="mx-auto max-w-3xl px-4 py-4">
+        <div class="relative flex items-end gap-2 rounded-2xl bg-surface px-4 py-2">
           <NInput
             v-model:value="inputText"
             type="textarea"
@@ -60,7 +60,7 @@
             :type="inputText.trim() ? 'primary' : 'default'"
             :disabled="!inputText.trim() || isLoading"
             :loading="isLoading"
-            class="shrink-0 mb-0.5"
+            class="mb-0.5 shrink-0"
             @click="handleSend"
           >
             <template #icon>
@@ -68,23 +68,32 @@
             </template>
           </NButton>
         </div>
-        <p class="text-xs text-center text-text-dim mt-2.5">Enter 发送，Shift + Enter 换行</p>
+        <p class="mt-2.5 text-center text-xs text-text-dim">Enter 发送，Shift + Enter 换行</p>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { NInput, NButton, NIcon } from 'naive-ui'
 import { SendOutline, PersonOutline, SparklesOutline } from '@vicons/ionicons5'
-import type { Message } from '../types'
+import type { Message, Conversation } from '../types'
 import { sendMockChatMessage } from '../api/mock'
 
-const messages = ref<Message[]>([])
+const props = defineProps<{
+  conversation?: Conversation
+}>()
+
+const emit = defineEmits<{
+  'sendMessage': [message: Message]
+}>()
+
 const inputText = ref('')
 const isLoading = ref(false)
 const loadingMessageId = ref('')
+
+const displayMessages = computed(() => props.conversation?.messages || [])
 
 const formatMessage = (content: string) => {
   return content
@@ -96,7 +105,7 @@ const formatMessage = (content: string) => {
 }
 
 const handleSend = async () => {
-  if (!inputText.value.trim() || isLoading.value) return
+  if (!inputText.value.trim() || isLoading.value || !props.conversation) return
   
   const userMsg: Message = {
     id: Date.now().toString(),
@@ -105,7 +114,7 @@ const handleSend = async () => {
     timestamp: Date.now()
   }
   
-  messages.value.push(userMsg)
+  props.conversation.messages.push(userMsg)
   inputText.value = ''
   
   const aiMsg: Message = {
@@ -114,7 +123,7 @@ const handleSend = async () => {
     content: '',
     timestamp: Date.now()
   }
-  messages.value.push(aiMsg)
+  props.conversation.messages.push(aiMsg)
 
   isLoading.value = true
   loadingMessageId.value = aiMsg.id
