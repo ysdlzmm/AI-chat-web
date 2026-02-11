@@ -6,10 +6,10 @@
       @update:activeId="activeId = $event"
       @newConversation="handleNewConversation"
       @deleteConversation="handleDeleteConversation"
+      @updateConversationTitle="handleUpdateTitle"
     />
     <ChatArea 
       :conversation="currentConversation"
-      @sendMessage="handleSendMessage"
     />
   </div>
 </template>
@@ -18,7 +18,7 @@
 import { ref, computed } from 'vue'
 import Sidebar from '../components/Sidebar.vue'
 import ChatArea from '../components/ChatArea.vue'
-import type { Conversation, Message } from '../types'
+import type { Conversation } from '../types'
 
 const conversations = ref<Conversation[]>([
   {
@@ -53,8 +53,10 @@ const handleDeleteConversation = (id: string) => {
   }
 }
 
-const handleSendMessage = (message: Message) => {
-  if (!currentConversation.value) return
-  currentConversation.value.messages.push(message)
+const handleUpdateTitle = ({ id, title }: { id: string, title: string }) => {
+  const conv = conversations.value.find(c => c.id === id)
+  if (conv) {
+    conv.title = title
+  }
 }
 </script>

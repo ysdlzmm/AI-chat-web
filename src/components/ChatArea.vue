@@ -85,10 +85,6 @@ const props = defineProps<{
   conversation?: Conversation
 }>()
 
-const emit = defineEmits<{
-  'sendMessage': [message: Message]
-}>()
-
 const inputText = ref('')
 const isLoading = ref(false)
 const loadingMessageId = ref('')

@@ -45,20 +45,38 @@
               class="shrink-0"
               :class="activeId === conv.id ? 'text-primary' : 'text-text-dim'" 
             />
+            <template v-if="editingId === conv.id && !collapsed">
+              <NInput
+                ref="editInputRef"
+                v-model:value="editingTitle"
+                size="tiny"
+                class="flex-1"
+                @blur="handleSaveEdit"
+                @keydown="handleEditKeydown"
+              />
+            </template>
             <span 
+              v-else
               class="text-sm truncate whitespace-nowrap overflow-hidden transition-all duration-300 ease-in-out flex-1"
               :class="[
                 activeId === conv.id ? 'text-primary' : 'text-text',
                 collapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'
               ]"
-            >{{ conv.title }}</span>
-            <NIcon
-              v-if="!collapsed"
-              :component="CloseOutline"
-              :size="14"
-              class="text-text-dim hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all shrink-0"
-              @click.stop="handleDeleteConversation(conv.id)"
-            />
+              >{{ conv.title }}</span>
+            <template v-if="!collapsed && editingId !== conv.id">
+              <NIcon
+                :component="CreateOutline"
+                :size="14"
+                class="text-text-dim hover:text-primary opacity-0 group-hover:opacity-100 transition-all shrink-0"
+                @click.stop="handleStartEdit(conv.id, conv.title)"
+              />
+              <NIcon
+                :component="CloseOutline"
+                :size="14"
+                class="text-text-dim hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all shrink-0"
+                @click.stop="handleDeleteConversation(conv.id)"
+              />
+            </template>
           </div>
         </div>
       </div>
@@ -80,9 +98,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { NIcon } from 'naive-ui'
-import { AddOutline, CloseOutline, ChatbubblesOutline, SparklesOutline, ChevronForwardOutline, ChevronBackOutline } from '@vicons/ionicons5'
+import { ref, nextTick } from 'vue'
+import { NIcon, NInput } from 'naive-ui'
+import { AddOutline, CloseOutline, ChatbubblesOutline, SparklesOutline, ChevronForwardOutline, ChevronBackOutline, CreateOutline } from '@vicons/ionicons5'
 import type { Conversation } from '../types'
 
 const props = defineProps<{
@@ -94,9 +112,13 @@ const emit = defineEmits<{
   'update:activeId': [id: string]
   'newConversation': []
   'deleteConversation': [id: string]
+  'updateConversationTitle': [{ id: string, title: string }]
 }>()
 
 const collapsed = ref(false)
+const editingId = ref<string | null>(null)
+const editingTitle = ref('')
+const editInputRef = ref<InstanceType<typeof NInput> | null>(null)
 
 const toggleCollapse = () => {
   collapsed.value = !collapsed.value
@@ -112,5 +134,29 @@ const handleSelectConversation = (id: string) => {
 
 const handleDeleteConversation = (id: string) => {
   emit('deleteConversation', id)
+}
+
+const handleStartEdit = async (id: string, title: string) => {
+  editingId.value = id
+  editingTitle.value = title
+  await nextTick()
+  editInputRef.value?.focus()
+}
+
+const handleSaveEdit = () => {
+  if (editingId.value && editingTitle.value.trim()) {
+    emit('updateConversationTitle', { id: editingId.value, title: editingTitle.value.trim() })
+  }
+  editingId.value = null
+  editingTitle.value = ''
+}
+
+const handleEditKeydown = (e: KeyboardEvent) => {
+  if (e.key === 'Enter') {
+    ;(e.target as HTMLElement).blur()
+  } else if (e.key === 'Escape') {
+    editingId.value = null
+    editingTitle.value = ''
+  }
 }
 </script>
