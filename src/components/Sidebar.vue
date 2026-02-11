@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { ref, nextTick } from 'vue'
-import type { NInput } from 'naive-ui';
-import { NIcon } from 'naive-ui'
+import { ref } from 'vue'
+import { NIcon, NInput } from 'naive-ui'
 import { AddOutline, CloseOutline, ChatbubblesOutline, SparklesOutline, ChevronForwardOutline, ChevronBackOutline, CreateOutline } from '@vicons/ionicons5'
 import type { Conversation } from '../types'
 
@@ -20,7 +19,6 @@ const emit = defineEmits<{
 const collapsed = ref(false)
 const editingId = ref<string | null>(null)
 const editingTitle = ref('')
-const editInputRef = ref<InstanceType<typeof NInput> | null>(null)
 
 const toggleCollapse = () => {
   collapsed.value = !collapsed.value
@@ -41,8 +39,6 @@ const handleDeleteConversation = (id: string) => {
 const handleStartEdit = async (id: string, title: string) => {
   editingId.value = id
   editingTitle.value = title
-  await nextTick()
-  editInputRef.value?.focus()
 }
 
 const handleSaveEdit = () => {
@@ -112,10 +108,10 @@ const handleEditKeydown = (e: KeyboardEvent) => {
             />
             <template v-if="editingId === conv.id && !collapsed">
               <NInput
-                ref="editInputRef"
                 v-model:value="editingTitle"
                 size="tiny"
                 class="flex-1"
+                autofocus
                 @blur="handleSaveEdit"
                 @keydown="handleEditKeydown"
               />
