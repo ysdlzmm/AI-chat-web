@@ -1,13 +1,3 @@
-<template>
-  <NConfigProvider :theme-overrides="themeOverrides">
-    <NMessageProvider>
-      <div class="h-screen w-screen bg-bg text-text overflow-hidden font-sans antialiased">
-        <AppLayout />
-      </div>
-    </NMessageProvider>
-  </NConfigProvider>
-</template>
-
 <script setup lang="ts">
 import { NConfigProvider, NMessageProvider } from 'naive-ui'
 import AppLayout from './views/AppLayout.vue'
@@ -35,3 +25,14 @@ const themeOverrides = {
   }
 }
 </script>
+<template>
+  <NConfigProvider :theme-overrides="themeOverrides">
+    <NMessageProvider>
+      <div class="h-screen w-screen overflow-hidden bg-bg text-text font-sans antialiased">
+        <AppLayout />
+      </div>
+    </NMessageProvider>
+  </NConfigProvider>
+</template>
+
+

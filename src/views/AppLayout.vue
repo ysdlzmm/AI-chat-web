@@ -1,19 +1,3 @@
-<template>
-  <div class="flex h-full">
-    <Sidebar 
-      :conversations="conversations"
-      :activeId="activeId"
-      @update:activeId="activeId = $event"
-      @newConversation="handleNewConversation"
-      @deleteConversation="handleDeleteConversation"
-      @updateConversationTitle="handleUpdateTitle"
-    />
-    <ChatArea 
-      :conversation="currentConversation"
-    />
-  </div>
-</template>
-
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import Sidebar from '../components/Sidebar.vue'
@@ -60,3 +44,20 @@ const handleUpdateTitle = ({ id, title }: { id: string, title: string }) => {
   }
 }
 </script>
+<template>
+  <div class="h-full flex">
+    <Sidebar 
+      :conversations="conversations"
+      :activeId="activeId"
+      @update:activeId="activeId = $event"
+      @newConversation="handleNewConversation"
+      @deleteConversation="handleDeleteConversation"
+      @updateConversationTitle="handleUpdateTitle"
+    />
+    <ChatArea 
+      :conversation="currentConversation"
+    />
+  </div>
+</template>
+
+

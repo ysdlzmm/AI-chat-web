@@ -1,3 +1,77 @@
+<script setup lang="ts">
+import { ref, computed } from 'vue'
+import { NInput, NButton, NIcon } from 'naive-ui'
+import { SendOutline, PersonOutline, SparklesOutline } from '@vicons/ionicons5'
+import type { Message, Conversation } from '../types'
+import { sendMockChatMessage } from '../api/mock'
+
+const props = defineProps<{
+  conversation?: Conversation
+}>()
+
+const inputText = ref('')
+const isLoading = ref(false)
+const loadingMessageId = ref('')
+
+const displayMessages = computed(() => props.conversation?.messages || [])
+
+const formatMessage = (content: string) => {
+  return content
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\n/g, '<br>')
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/```([\s\S]*?)```/g, '<pre class="bg-surface2 rounded-lg p-3 my-2 overflow-x-auto text-xs"><code>$1</code></pre>')
+}
+
+const handleSend = async () => {
+  if (!inputText.value.trim() || isLoading.value || !props.conversation) return
+  
+  const userMsg: Message = {
+    id: Date.now().toString(),
+    role: 'user',
+    content: inputText.value,
+    timestamp: Date.now()
+  }
+  
+  props.conversation.messages.push(userMsg)
+  inputText.value = ''
+  
+  const aiMsg: Message = {
+    id: (Date.now() + 1).toString(),
+    role: 'assistant',
+    content: '',
+    timestamp: Date.now()
+  }
+  props.conversation.messages.push(aiMsg)
+
+  isLoading.value = true
+  loadingMessageId.value = aiMsg.id
+
+  try {
+    await sendMockChatMessage(
+      (chunk) => {
+        aiMsg.content += chunk
+      },
+      () => {
+        isLoading.value = false
+        loadingMessageId.value = ''
+      }
+    )
+  } catch (error) {
+    aiMsg.content = `发生错误: ${error instanceof Error ? error.message : '未知错误'}`
+    isLoading.value = false
+    loadingMessageId.value = ''
+  }
+}
+
+const handleKeyDown = (e: KeyboardEvent) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault()
+    handleSend()
+  }
+}
+</script>
 <template>
   <div class="flex flex-1 flex-col bg-bg">
     <div class="custom-scrollbar flex-1 overflow-y-auto">
@@ -74,77 +148,4 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, computed } from 'vue'
-import { NInput, NButton, NIcon } from 'naive-ui'
-import { SendOutline, PersonOutline, SparklesOutline } from '@vicons/ionicons5'
-import type { Message, Conversation } from '../types'
-import { sendMockChatMessage } from '../api/mock'
 
-const props = defineProps<{
-  conversation?: Conversation
-}>()
-
-const inputText = ref('')
-const isLoading = ref(false)
-const loadingMessageId = ref('')
-
-const displayMessages = computed(() => props.conversation?.messages || [])
-
-const formatMessage = (content: string) => {
-  return content
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/\n/g, '<br>')
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/```([\s\S]*?)```/g, '<pre class="bg-surface2 rounded-lg p-3 my-2 overflow-x-auto text-xs"><code>$1</code></pre>')
-}
-
-const handleSend = async () => {
-  if (!inputText.value.trim() || isLoading.value || !props.conversation) return
-  
-  const userMsg: Message = {
-    id: Date.now().toString(),
-    role: 'user',
-    content: inputText.value,
-    timestamp: Date.now()
-  }
-  
-  props.conversation.messages.push(userMsg)
-  inputText.value = ''
-  
-  const aiMsg: Message = {
-    id: (Date.now() + 1).toString(),
-    role: 'assistant',
-    content: '',
-    timestamp: Date.now()
-  }
-  props.conversation.messages.push(aiMsg)
-
-  isLoading.value = true
-  loadingMessageId.value = aiMsg.id
-
-  try {
-    await sendMockChatMessage(
-      (chunk) => {
-        aiMsg.content += chunk
-      },
-      () => {
-        isLoading.value = false
-        loadingMessageId.value = ''
-      }
-    )
-  } catch (error) {
-    aiMsg.content = `发生错误: ${error instanceof Error ? error.message : '未知错误'}`
-    isLoading.value = false
-    loadingMessageId.value = ''
-  }
-}
-
-const handleKeyDown = (e: KeyboardEvent) => {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault()
-    handleSend()
-  }
-}
-</script>

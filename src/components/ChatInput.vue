@@ -1,51 +1,3 @@
-<template>
-    <div class="max-w-4xl mx-auto">
-        <div class="bg-dark-surface rounded-2xl border border-dark-border focus-within:border-purple-500 transition-colors">
-            <div class="flex items-end p-3">
-                <button class="p-2 hover:bg-dark-border rounded-lg transition-colors mr-2">
-                    <i class="i-carbon-attachment text-dark-secondary text-xl" />
-                </button>
-
-                <textarea
-                    ref="textareaRef"
-                    v-model="content"
-                    class="flex-1 bg-transparent resize-none outline-none text-dark-text placeholder-dark-secondary min-h-[56px] max-h-[200px]"
-                    placeholder="输入消息... (Shift + Enter 换行)"
-                    rows="1"
-                    @keydown="handleKeydown"
-                    @input="autoResize"
-                />
-
-                <button
-                    class="p-2 bg-purple-600 hover:bg-purple-700 disabled:bg-dark-border disabled:cursor-not-allowed rounded-lg transition-colors ml-2"
-                    :disabled="!content.trim()"
-                    @click="handleSend"
-                >
-                    <i class="i-carbon-send text-white text-xl" />
-                </button>
-            </div>
-
-            <div class="px-3 pb-2 flex items-center justify-between text-xs text-dark-secondary">
-                <div class="flex items-center gap-3">
-                    <span>{{ content.length }} / 4000</span>
-                </div>
-                <div class="flex items-center gap-2">
-                    <button class="hover:text-dark-text transition-colors flex items-center gap-1">
-                        <i class="i-carbon-arrow-up" />
-                        <span>深度思考</span>
-                    </button>
-                    <button class="hover:text-dark-text transition-colors flex items-center gap-1">
-                        <i class="i-carbon-earth" />
-                        <span>联网搜索</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <div class="text-center text-xs text-dark-secondary mt-3">AI 生成的内容可能不准确，请核实重要信息</div>
-    </div>
-</template>
-
 <script setup lang="ts">
 import { ref, nextTick } from 'vue';
 
@@ -82,3 +34,52 @@ const autoResize = () => {
     }
 };
 </script>
+<template>
+    <div class="mx-auto max-w-4xl">
+        <div class="bg-dark-surface border-dark-border border rounded-2xl transition-colors focus-within:border-purple-500">
+            <div class="flex items-end p-3">
+                <button class="hover:bg-dark-border mr-2 rounded-lg p-2 transition-colors">
+                    <i class="text-dark-secondary i-carbon-attachment text-xl" ></i>
+                </button>
+
+                <textarea
+                    ref="textareaRef"
+                    v-model="content"
+                    class="text-dark-text placeholder-dark-secondary max-h-[200px] min-h-[56px] flex-1 resize-none bg-transparent outline-none"
+                    placeholder="输入消息... (Shift + Enter 换行)"
+                    rows="1"
+                    @keydown="handleKeydown"
+                    @input="autoResize"
+                ></textarea>
+
+                <button
+                    class="disabled:bg-dark-border ml-2 rounded-lg bg-purple-600 p-2 transition-colors disabled:cursor-not-allowed hover:bg-purple-700"
+                    :disabled="!content.trim()"
+                    @click="handleSend"
+                >
+                    <i class="i-carbon-send text-xl text-white" ></i>
+                </button>
+            </div>
+
+            <div class="text-dark-secondary flex items-center justify-between px-3 pb-2 text-xs">
+                <div class="flex items-center gap-3">
+                    <span>{{ content.length }} / 4000</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button class="hover:text-dark-text flex items-center gap-1 transition-colors">
+                        <i class="i-carbon-arrow-up" ></i>
+                        <span>深度思考</span>
+                    </button>
+                    <button class="hover:text-dark-text flex items-center gap-1 transition-colors">
+                        <i class="i-carbon-earth" ></i>
+                        <span>联网搜索</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-dark-secondary mt-3 text-center text-xs">AI 生成的内容可能不准确，请核实重要信息</div>
+    </div>
+</template>
+
+
