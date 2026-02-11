@@ -106,7 +106,6 @@ const handleSend = async () => {
   }
   
   messages.value.push(userMsg)
-  const userInput = inputText.value
   inputText.value = ''
   
   const aiMsg: Message = {
@@ -120,7 +119,7 @@ const handleSend = async () => {
   isLoading.value = true
   loadingMessageId.value = aiMsg.id
   
-  const apiMessages = messages.value
+//   const apiMessages = messages.value
     .filter(m => m.id !== aiMsg.id)
     .map(m => ({
       role: m.role as 'user' | 'assistant',
