@@ -22,7 +22,15 @@
             class="px-4 py-3 rounded-2xl max-w-[75%]"
             :class="msg.role === 'user' ? 'bg-gradient-to-br from-primary to-primary-soft text-white' : 'bg-surface text-text'"
           >
-            <div class="text-sm leading-7 whitespace-pre-wrap">{{ msg.content }}</div>
+            <div 
+              class="text-sm leading-7 whitespace-pre-wrap"
+              v-html="formatMessage(msg.content)"
+            />
+            <div v-if="msg.role === 'assistant' && isLoading && msg.id === loadingMessageId" class="flex items-center gap-1 mt-2">
+              <span class="w-1.5 h-1.5 bg-text-dim rounded-full animate-bounce" style="animation-delay: 0ms"></span>
+              <span class="w-1.5 h-1.5 bg-text-dim rounded-full animate-bounce" style="animation-delay: 150ms"></span>
+              <span class="w-1.5 h-1.5 bg-text-dim rounded-full animate-bounce" style="animation-delay: 300ms"></span>
+            </div>
           </div>
         </div>
         
@@ -31,7 +39,6 @@
             <NIcon :component="SparklesOutline" :size="32" class="text-primary-soft" />
           </div>
           <h2 class="text-xl font-medium text-text mb-2">有什么可以帮你的吗？</h2>
-          <!-- <p class="text-sm text-text-dim">输入你的问题，AI 将为你解答</p> -->
         </div>
       </div>
     </div>
@@ -45,12 +52,14 @@
             :autosize="{ minRows: 1, maxRows: 8 }"
             placeholder="发送消息给 AI..."
             class="flex-1"
+            :disabled="isLoading"
             @keydown="handleKeyDown"
           />
           <NButton
             quaternary
             :type="inputText.trim() ? 'primary' : 'default'"
-            :disabled="!inputText.trim()"
+            :disabled="!inputText.trim() || isLoading"
+            :loading="isLoading"
             class="shrink-0 mb-0.5"
             @click="handleSend"
           >
@@ -70,12 +79,24 @@ import { ref } from 'vue'
 import { NInput, NButton, NIcon } from 'naive-ui'
 import { SendOutline, PersonOutline, SparklesOutline } from '@vicons/ionicons5'
 import type { Message } from '../types'
+import { sendMockChatMessage } from '../api/mock'
 
 const messages = ref<Message[]>([])
 const inputText = ref('')
+const isLoading = ref(false)
+const loadingMessageId = ref('')
 
-const handleSend = () => {
-  if (!inputText.value.trim()) return
+const formatMessage = (content: string) => {
+  return content
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\n/g, '<br>')
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/```([\s\S]*?)```/g, '<pre class="bg-surface2 rounded-lg p-3 my-2 overflow-x-auto text-xs"><code>$1</code></pre>')
+}
+
+const handleSend = async () => {
+  if (!inputText.value.trim() || isLoading.value) return
   
   const userMsg: Message = {
     id: Date.now().toString(),
@@ -85,17 +106,42 @@ const handleSend = () => {
   }
   
   messages.value.push(userMsg)
+  const userInput = inputText.value
   inputText.value = ''
   
-  setTimeout(() => {
-    const aiMsg: Message = {
-      id: (Date.now() + 1).toString(),
-      role: 'assistant',
-      content: '这是一个示例回复。实际使用时，请接入真实的 AI API。',
-      timestamp: Date.now()
-    }
-    messages.value.push(aiMsg)
-  }, 1000)
+  const aiMsg: Message = {
+    id: (Date.now() + 1).toString(),
+    role: 'assistant',
+    content: '',
+    timestamp: Date.now()
+  }
+  messages.value.push(aiMsg)
+  
+  isLoading.value = true
+  loadingMessageId.value = aiMsg.id
+  
+  const apiMessages = messages.value
+    .filter(m => m.id !== aiMsg.id)
+    .map(m => ({
+      role: m.role as 'user' | 'assistant',
+      content: m.content
+    }))
+  
+  try {
+    await sendMockChatMessage(
+      (chunk) => {
+        aiMsg.content += chunk
+      },
+      () => {
+        isLoading.value = false
+        loadingMessageId.value = ''
+      }
+    )
+  } catch (error) {
+    aiMsg.content = `发生错误: ${error instanceof Error ? error.message : '未知错误'}`
+    isLoading.value = false
+    loadingMessageId.value = ''
+  }
 }
 
 const handleKeyDown = (e: KeyboardEvent) => {
