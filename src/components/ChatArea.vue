@@ -115,17 +115,10 @@ const handleSend = async () => {
     timestamp: Date.now()
   }
   messages.value.push(aiMsg)
-  
+
   isLoading.value = true
   loadingMessageId.value = aiMsg.id
-  
-//   const apiMessages = messages.value
-    .filter(m => m.id !== aiMsg.id)
-    .map(m => ({
-      role: m.role as 'user' | 'assistant',
-      content: m.content
-    }))
-  
+
   try {
     await sendMockChatMessage(
       (chunk) => {

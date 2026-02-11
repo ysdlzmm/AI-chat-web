@@ -27,8 +27,5 @@ export default defineConfig({
       'text-muted': '#a1a1aa',
       'text-dim': '#52525b'
     }
-  },
-  shortcuts: {
-    'custom-scrollbar': 'scrollbar scrollbar-w-1 scrollbar-track-transparent scrollbar-thumb-text-dim/30 hover:scrollbar-thumb-text-dim/50 scrollbar-thumb-rounded'
   }
 })
